@@ -1,7 +1,7 @@
 {
   "name": "promplit-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "AI Prompt Generator Backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -14,6 +14,11 @@
     "compression": "^1.7.4",
     "morgan": "^1.10.0",
     "dotenv": "^16.0.3",
-    "stripe": "^12.0.0"
-  }
+    "axios": "^1.6.0",
+    "stripe": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
 }
+  }
+
