@@ -11,21 +11,21 @@ const PORT = process.env.PORT || 3001;
 // Trust proxy
 app.set('trust proxy', 1);
 
-// Simple, working middleware
+// Middleware
 app.use(helmet());
 app.use(compression());
 app.use(morgan('combined'));
 
-// Fixed CORS configuration
+// CORS configuration
 app.use(cors({
   origin: function (origin, callback) {
     console.log('CORS request from origin:', origin);
     
-    // Allow requests with no origin (mobile apps, curl requests, etc.)
     if (!origin) return callback(null, true);
     
     const allowedOrigins = [
       'https://stunning-brioche-d1383a.netlify.app',
+      'https://promplit.xyz',
       'http://localhost:3000',
       'http://localhost:3001'
     ];
@@ -35,7 +35,7 @@ app.use(cors({
       callback(null, true);
     } else {
       console.log('CORS blocked origin:', origin);
-      callback(null, true); // Allow all for now to debug
+      callback(null, true);
     }
   },
   credentials: true,
@@ -49,6 +49,7 @@ app.use(express.json({ limit: '10mb' }));
 
 // Routes
 app.use('/api/prompts', require('./routes/prompts'));
+app.use('/api/stripe', require('./routes/stripe'));
 
 // Health check
 app.get('/health', (req, res) => {
