@@ -136,8 +136,8 @@ Transform the user's input into an optimized text generation prompt.`,
     cleaned = cleaned.replace(/\s*(based on this request|for this|as requested).*$/i, '').trim();
     
     // Limit length
-    if (cleaned.length > 600) {
-        cleaned = cleaned.substring(0, 600) + '...';
+    if (cleaned.length > 1000) {
+        cleaned = cleaned.substring(0, 1000) + '...';
     }
 
     return cleaned;
