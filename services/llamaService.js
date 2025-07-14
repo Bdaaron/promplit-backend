@@ -35,6 +35,7 @@ class LlamaService {
     const prompts = {
       image: `You are an expert AI image prompt engineer. Transform user ideas into detailed, optimized prompts for AI image generators like DALL-E, Midjourney, and Stable Diffusion.
 IMPORTANT: Respond with ONLY the prompt text. No explanations or introductions.
+IMPORTANT: Do not cut off the prompt. Provide the full, complete prompt text without truncation.
 
 RULES:
 1. Create vivid, detailed descriptions
