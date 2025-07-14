@@ -40,7 +40,6 @@ RULES:
 1. Create vivid, detailed descriptions
 2. Include artistic style, lighting, composition details  
 3. Add technical parameters (4K, highly detailed, cinematic, etc.)
-4. Keep prompts between 110-200 words
 5. Focus on visual elements that AI can understand
 6. Make prompts inspiring and creative
 7. Include specific details about colors, textures, mood, and atmosphere
