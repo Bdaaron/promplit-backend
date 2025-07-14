@@ -1,59 +1,62 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
 const router = express.Router();
+const llamaService = require('../services/llamaService');
+const rateLimit = require('express-rate-limit');
 
-// Input validation rules
-const validatePrompt = [
-  body('prompt')
-    .isLength({ min: 1, max: 500 })
-    .withMessage('Prompt must be between 1 and 500 characters')
-    .matches(/^[a-zA-Z0-9\s\.,!?'"()-]+$/)
-    .withMessage('Prompt contains invalid characters')
-    .escape(), // HTML escape
-  body('type')
-    .isIn(['image', 'text'])
-    .withMessage('Invalid type specified')
-];
+// Simple rate limiting
+const promptLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30,
+  message: { error: 'Too many requests' }
+});
 
-// Prompt generation endpoint
-router.post('/generate', validatePrompt, async (req, res) => {
+router.use(promptLimit);
+
+// Generate prompt
+router.post('/generate', async (req, res) => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    const { prompt, type = 'image' } = req.body;
+
+    if (!prompt || prompt.trim().length === 0) {
       return res.status(400).json({
-        success: false,
-        message: 'Invalid input data',
-        errors: errors.array()
+        error: 'Invalid input',
+        message: 'Prompt is required'
       });
     }
 
-    const { prompt, type } = req.body;
-    
-    // Additional security checks
-    if (!prompt || typeof prompt !== 'string') {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid prompt provided'
-      });
-    }
+    console.log(`📝 Generating prompt: "${prompt.substring(0, 50)}..."`);
 
-    // Simulate AI prompt generation (replace with your actual AI logic)
-    const enhancedPrompt = `Professional ${type} generation: ${prompt}, ultra-detailed, high quality, masterpiece`;
-    
-    // Log for monitoring (without sensitive data)
-    console.log(`Prompt generated for type: ${type}, length: ${prompt.length}`);
-    
+    const generatedPrompt = await llamaService.generatePrompt(prompt, type);
+
     res.json({
       success: true,
-      generatedPrompt: enhancedPrompt
+      originalPrompt: prompt,
+      generatedPrompt,
+      type,
+      timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('Prompt generation error:', error);
+    console.error('❌ Error:', error.message);
     res.status(500).json({
-      success: false,
-      message: 'Failed to generate prompt'
+      error: 'Generation failed',
+      message: 'Failed to generate prompt. Please try again.'
+    });
+  }
+});
+
+// Health check
+router.get('/health', async (req, res) => {
+  try {
+    await llamaService.generatePrompt('test', 'image');
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      error: error.message
     });
   }
 });
