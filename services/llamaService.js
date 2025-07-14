@@ -39,7 +39,7 @@ RULES:
 1. Create vivid, detailed descriptions
 2. Include artistic style, lighting, composition details  
 3. Add technical parameters (4K, highly detailed, cinematic, etc.)
-4. Keep prompts between 50-150 words
+4. Keep prompts between 110-200 words
 5. Focus on visual elements that AI can understand
 6. Make prompts inspiring and creative
 7. Include specific details about colors, textures, mood, and atmosphere
@@ -53,6 +53,10 @@ RULES:
 2. Include context and constraints
 3. Specify desired format/style
 4. Keep prompts focused and actionable
+5. Use natural language, avoid jargon
+6. Make prompts engaging and creative
+7. Make sure prompts are complete no missing information or........
+8. Add prompt only ready to copy and paste
 
 Transform the user's input into an optimized text generation prompt.`,
     };
