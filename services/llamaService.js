@@ -114,26 +114,34 @@ Transform the user's input into an optimized text generation prompt.`,
       }
     }
   }
-
   cleanResponse(response) {
     // Clean up the AI response
     let cleaned = response.trim();
     
+    // Remove everything before and including the colon after instruction text
+    cleaned = cleaned.replace(/^.*?(prompt.*?:|create.*?:|generate.*?:|image.*?:|detailed.*?:)/i, '').trim();
+    
     // Remove common prefixes
-    cleaned = cleaned.replace(/^(Here's|Here is|Prompt:|Generated prompt:|Image prompt:)/i, '').trim();
+    cleaned = cleaned.replace(/^(Here's|Here is|Prompt:|Generated prompt:|Image prompt:|an optimized|optimized|a detailed|detailed)/i, '').trim();
+    
+    // Remove any remaining instruction patterns
+    cleaned = cleaned.replace(/^(.*?prompt.*?for.*?:|.*?designed.*?to.*?:|.*?generate.*?:|.*?create.*?:)/i, '').trim();
     
     // Remove quotes if the entire response is quoted
     if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
-      cleaned = cleaned.slice(1, -1);
+        cleaned = cleaned.slice(1, -1);
     }
+    
+    // Remove any trailing instruction text
+    cleaned = cleaned.replace(/\s*(based on this request|for this|as requested).*$/i, '').trim();
     
     // Limit length
     if (cleaned.length > 600) {
-      cleaned = cleaned.substring(0, 600) + '...';
+        cleaned = cleaned.substring(0, 600) + '...';
     }
 
     return cleaned;
-  }
+}
 
   // Test method to check if service is working
   async healthCheck() {
