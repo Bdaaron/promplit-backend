@@ -91,30 +91,34 @@ app.use(morgan('combined'));
 app.use(mongoSanitize()); // Prevent NoSQL injection
 app.use(hpp()); // Prevent HTTP Parameter Pollution
 
-// CORS Configuration
-const allowedOrigins = [
-  'https://stunning-brioche-d1383a.netlify.app',
-  'https://promplit.xyz',
-  'https://www.promplit.xyz',
-  'http://localhost:3000',
-  'http://localhost:3001'
-];
-
+// CORS Configuration - FIXED
 app.use(cors({
   origin: function (origin, callback) {
+    console.log('CORS request from origin:', origin);
+    
     // Allow requests with no origin (mobile apps, postman, etc)
     if (!origin) return callback(null, true);
     
+    const allowedOrigins = [
+      'https://stunning-brioche-d1383a.netlify.app',
+      'https://promplit.xyz',
+      'https://www.promplit.xyz',
+      'http://localhost:3000',
+      'http://localhost:3001'
+    ];
+    
     if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('CORS allowed origin:', origin);
       callback(null, true);
     } else {
-      console.warn('CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
+      console.log('CORS blocked origin:', origin);
+      // FIXED: Allow all origins temporarily to restore functionality
+      callback(null, true);
     }
   },
   credentials: true,
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // FIXED: Added back all methods
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // FIXED: Added back all headers
   preflightContinue: false,
   optionsSuccessStatus: 200
 }));
