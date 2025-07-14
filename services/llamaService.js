@@ -34,6 +34,7 @@ class LlamaService {
   getSystemPrompt(promptType) {
     const prompts = {
       image: `You are an expert AI image prompt engineer. Transform user ideas into detailed, optimized prompts for AI image generators like DALL-E, Midjourney, and Stable Diffusion.
+IMPORTANT: Respond with ONLY the prompt text. No explanations or introductions.
 
 RULES:
 1. Create vivid, detailed descriptions
@@ -48,6 +49,8 @@ Transform the user's input into a professional, detailed image generation prompt
 
       text: `You are an expert prompt engineer for text AI models. Transform user requests into optimized prompts that get the best results.
 
+IMPORTANT: Respond with ONLY the prompt text. No explanations or introductions.
+
 RULES:
 1. Be specific and clear
 2. Include context and constraints
@@ -55,8 +58,8 @@ RULES:
 4. Keep prompts focused and actionable
 5. Use natural language, avoid jargon
 6. Make prompts engaging and creative
-7. Make sure prompts are complete no missing information or........
-8. Add prompt only ready to copy and paste
+
+
 
 Transform the user's input into an optimized text generation prompt.`,
     };
@@ -67,8 +70,8 @@ Transform the user's input into an optimized text generation prompt.`,
   formatUserPrompt(userInput, promptType) {
     return `User request: "${userInput}"
 
-Please create an optimized ${promptType} generation prompt based on this request. Make it detailed, specific, and designed to produce amazing results. Focus on creating a prompt that will generate high-quality, professional-looking images.`;
-  }
+    Please create an optimized ${promptType} pr based on this request. Make it detailed, specific, and designed to produce amazing results. Focus on creating a prompt that will generate high-quality, professional-looking images.`;
+}
 
   async callTogetherAI(systemPrompt, userPrompt) {
     if (!this.apiKey) {
