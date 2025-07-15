@@ -1,43 +1,22 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
 const router = express.Router();
 
-// Initialize Stripe securely
+// Initialize Stripe only if secret key is available
 let stripe;
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-  console.log('✅ Stripe initialized securely');
+  console.log('✅ Stripe initialized');
 } else {
-  console.warn('⚠️ STRIPE_SECRET_KEY not found');
+  console.warn('⚠️ STRIPE_SECRET_KEY not found, using demo mode');
 }
 
-// Validation rules for checkout
-const validateCheckout = [
-  body('priceId')
-    .isLength({ min: 1, max: 100 })
-    .matches(/^price_[a-zA-Z0-9]+$/)
-    .withMessage('Invalid price ID format'),
-  body('successUrl')
-    .isURL({ protocols: ['https'] })
-    .withMessage('Success URL must be HTTPS'),
-  body('cancelUrl')
-    .isURL({ protocols: ['https'] })
-    .withMessage('Cancel URL must be HTTPS')
-];
-
-router.post('/create-checkout-session', validateCheckout, async (req, res) => {
+router.post('/create-checkout-session', async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-
     const { priceId, successUrl, cancelUrl } = req.body;
+    console.log('Creating checkout session for price:', priceId);
     
     if (!stripe) {
+      console.log('Using demo mode - no real Stripe');
       return res.json({
         success: true,
         sessionId: 'cs_demo_' + Date.now(),
@@ -47,54 +26,39 @@ router.post('/create-checkout-session', validateCheckout, async (req, res) => {
     
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [{
-        price: priceId,
-        quantity: 1,
-      }],
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
       mode: 'subscription',
       success_url: successUrl,
       cancel_url: cancelUrl,
       automatic_tax: { enabled: false },
-      allow_promotion_codes: false,
-      billing_address_collection: 'required',
-      customer_creation: 'always'
     });
 
-    // Log successful session creation (without sensitive data)
-    console.log('✅ Checkout session created:', session.id.substring(0, 10) + '...');
-    
+    console.log('✅ Stripe session created:', session.id);
     res.json({
       success: true,
       sessionId: session.id
     });
   } catch (error) {
-    console.error('❌ Stripe checkout error:', error.message);
+    console.error('❌ Stripe error:', error);
     res.status(500).json({
       success: false,
-      error: 'Payment setup failed'
+      error: error.message || 'Payment setup failed'
     });
   }
 });
 
-// Session verification with validation
-router.post('/verify-session', [
-  body('sessionId')
-    .isLength({ min: 1, max: 200 })
-    .matches(/^cs_[a-zA-Z0-9_]+$/)
-    .withMessage('Invalid session ID format')
-], async (req, res) => {
+router.post('/verify-session', async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-
     const { sessionId } = req.body;
+    console.log('Verifying session:', sessionId);
     
     if (!stripe || sessionId.startsWith('cs_demo_')) {
+      console.log('Demo verification - auto success');
       return res.json({
         success: true,
         customer: 'demo_customer'
@@ -102,8 +66,7 @@ router.post('/verify-session', [
     }
     
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    
-    console.log('Session verified:', session.id.substring(0, 10) + '...');
+    console.log('Session status:', session.payment_status);
     
     res.json({
       success: session.payment_status === 'paid',
@@ -111,46 +74,4 @@ router.post('/verify-session', [
       subscription: session.subscription
     });
   } catch (error) {
-    console.error('❌ Session verification error:', error.message);
-    res.status(500).json({
-      success: false,
-      error: 'Verification failed'
-    });
-  }
-});
-
-// Webhook endpoint for Stripe events
-router.post('/webhook', express.raw({type: 'application/json'}), async (req, res) => {
-  if (!stripe || !process.env.STRIPE_WEBHOOK_SECRET) {
-    return res.status(400).json({ error: 'Webhooks not configured' });
-  }
-
-  const sig = req.headers['stripe-signature'];
-
-  try {
-    const event = stripe.webhooks.constructEvent(
-      req.body, 
-      sig, 
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-    
-    // Handle webhook events securely
-    switch (event.type) {
-      case 'checkout.session.completed':
-        console.log('✅ Payment successful');
-        break;
-      case 'customer.subscription.deleted':
-        console.log('⚠️ Subscription cancelled');
-        break;
-      default:
-        console.log(`Unhandled event type: ${event.type}`);
-    }
-    
-    res.json({ received: true });
-  } catch (error) {
-    console.error('❌ Webhook error:', error.message);
-    res.status(400).json({ error: 'Webhook verification failed' });
-  }
-});
-
-module.exports = router;
+    console.error('❌ Verification error:'  
