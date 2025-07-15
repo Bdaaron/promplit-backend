@@ -163,6 +163,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/prompts', require('./routes/prompts'));
 app.use('/api/stripe', require('./routes/stripe'));
+app.use('/api/creator', require('./routes/creator'));
 
 // Health check with minimal info
 app.get('/health', (req, res) => {
@@ -175,6 +176,7 @@ app.get('/health', (req, res) => {
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
+  
 });
 
 // Global error handler
