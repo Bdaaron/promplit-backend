@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promplit.xyz - Instant AI Prompts</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        :root {
+            --apple-blue: #007AFF;
+            --apple-gray: #F2F2F7;
+            --apple-dark: #1C1C1E;
+            --apple-light-gray: #F9F9F9;
+            --apple-border: rgba(0, 0, 0, 0.1);
+            --apple-shadow: rgba(0, 0, 0, 0.1);
+            --apple-radius: 16px;
+            --apple-spacing: 20px;
+            --apple-green: #34C759;
+            --creator-orange: #FF6B35;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(180deg, #F8F9FA 0%, #FFFFFF 100%);
+            min-height: 100vh;
+            color: var(--apple-dark);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--apple-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--apple-spacing);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--apple-dark);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            background: var(--apple-gray);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .nav-tab {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--apple-dark);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .nav-tab.active {
+            background: white;
+            box-shadow: 0 1px 3px var(--apple-shadow);
+            color: var(--apple-blue);
+        }
+
+        .version-badge {
+            background: var(--apple-blue);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px var(--apple-spacing) 40px;
+            width: 100%;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .hero-title {
+            font-size: clamp(36px, 5vw, 64px);
+            font-weight: 700;
+            color: var(--apple-dark);
+            margin-bottom: 16px;
+            letter-spacing: -2px;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: #666;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.4;
+        }
+
+        .status-indicator {
+            background: white;
+            border: 1px solid var(--apple-border);
+            border-radius: var(--apple-radius);
+            padding: 20px;
+            margin-bottom: 40px;
+            text-align: center;
+            box-shadow: 0 1px 3px var(--apple-shadow);
+        }
+
+        .status-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--apple-dark);
+        }
+
+        .status-pro {
+            background: linear-gradient(135deg, var(--apple-blue), #5AC8FA);
+            color: white;
+            border: none;
+        }
+
+        .countdown-timer {
+            font-family: 'SF Pro Display', monospace;
+            font-weight: 600;
+            color: var(--apple-blue);
+            font-size: 16px;
+            margin-top: 8px;
+        }
+
+        .input-section {
+            background: white;
+            border: 1px solid var(--apple-border);
+            border-radius: var(--apple-radius);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px var(--apple-shadow);
+        }
+
+        .input-label {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--apple-dark);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .prompt-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            border: 2px solid var(--apple-border);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.2s ease;
+            background: var(--apple-light-gray);
+        }
+
+        .prompt-input:focus {
+            outline: none;
+            border-color: var(--apple-blue);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+        }
+
+        .prompt-input::placeholder {
+            color: #999;
+        }
+
+        .primary-button {
+            width: 100%;
+            padding: 16px 24px;
+            background: var(--apple-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .primary-button:hover:not(:disabled) {
+            background: hsl(215, 100%, 40%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+
+        .primary-button:active {
+            transform: translateY(0);
+        }
+
+        .primary-button:disabled {
+            background: #C7C7CC;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secondary-button {
+            width: 100%;
+            padding: 16px 24px;
+            background: transparent;
+            color: var(--apple-blue);
+            border: 2px solid var(--apple-blue);
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .secondary-button:hover {
+            background: var(--apple-blue);
+            color: white;
+        }
+
+        .copy-button {
+            background: var(--apple-green);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-button:hover {
+            background: #28A745;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(52, 199, 89, 0.3);
+        }
+
+        .copy-button.copied {
+            background: #28A745;
+        }
+
+        .result-container {
+            background: white;
+            border: 1px solid var(--apple-border);
+            border-radius: var(--apple-radius);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px var(--apple-shadow);
+            min-height: 120px;
+            text-align: left;
+        }
+
+        .result-success {
+            border-color: #34C759;
+            background: linear-gradient(135deg, #F0FFF4, #FFFFFF);
+        }
+
+        .result-error {
+            border-color: #FF3B30;
+            background: linear-gradient(135deg, #FFF5F5, #FFFFFF);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .result-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--apple-dark);
+        }
+
+        .result-success .result-text {
+            color: #1111c1;
+        }
+
+        .result-error .result-text {
+            color: #D70015;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .result-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--apple-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tip-section {
+            background: linear-gradient(135deg, #E3F2FD, #F8F9FA);
+            border: 1px solid rgba(0, 122, 255, 0.2);
+            border-radius: var(--apple-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .tip-icon {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 24px;
+            height: 24px;
+            background: var(--apple-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .tip-content {
+            margin-left: 40px;
+        }
+
+        .tip-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--apple-dark);
+            margin-bottom: 8px;
+        }
+
+        .tip-text {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .tip-platforms {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .platform-tag {
+            background: var(--apple-blue);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .subscription-container {
+            text-align: center;
+        }
+
+        .pricing-card {
+            background: white;
+            border: 1px solid var(--apple-border);
+            border-radius: 20px;
+            padding: 40px 30px;
+            margin: 30px 0;
+            box-shadow: 0 4px 16px var(--apple-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--apple-blue), #5AC8FA);
+        }
+
+        .pricing-card.creator-pro::before {
+            background: linear-gradient(90deg, var(--creator-orange), #FF8A65);
+        }
+
+        .plan-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--apple-dark);
+            margin-bottom: 8px;
+        }
+
+        .plan-description {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .price-display {
+            margin: 30px 0;
+        }
+
+        .price-amount {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--apple-blue);
+            line-height: 1;
+        }
+
+        .creator-pro .price-amount {
+            color: var(--creator-orange);
+        }
+
+        .price-period {
+            font-size: 16px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .features-list {
+            list-style: none;
+            text-align: left;
+            margin: 30px 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            font-size: 16px;
+            color: var(--apple-dark);
+        }
+
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            background: var(--apple-blue);
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .creator-pro .feature-icon {
+            background: var(--creator-orange);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--apple-border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--creator-orange);
+            box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px var(--apple-spacing);
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid var(--apple-border);
+            background: var(--apple-light-gray);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .footer-link {
+            color: var(--apple-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .slide-up {
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 16px;
+                flex-direction: column;
+                height: auto;
+                padding-top: 16px;
+                padding-bottom: 16px;
+                gap: 16px;
+            }
+
+            .main-content {
+                padding: 40px 16px 20px;
+            }
+
+            .input-section,
+            .pricing-card {
+                padding: 20px;
+            }
+
+            .nav-tabs {
+                order: -1;
+            }
+
+            .logo {
+                font-size: 24px;
+            }
+
+            .hero-title {
+                font-size: 36px;
+            }
+
+            .hero-subtitle {
+                font-size: 18px;
+            }
+
+            .tip-content {
+                margin-left: 0;
+                margin-top: 35px;
+            }
+
+            .tip-icon {
+                position: relative;
+                margin: 0 auto 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        window.onload = function() {
+            const { useState, useEffect } = React;
+            
+            const API_URL = 'https://promplit-backend.onrender.com';
+            const STRIPE_PUBLISHABLE_KEY = 'pk_live_51RiAcSGX7z8uqUdD3YJoxeFat3jegieYNcWEwyKnmtqGIpQXKRGmpYTSqv5HDaBUMWyKjShD60pTzIrir94OHX6q00DgSFdSHw';
+            
+            const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+
+            function App() {
+                const [prompt, setPrompt] = useState('');
+                const [result, setResult] = useState('');
+                const [loading, setLoading] = useState(false);
+                const [error, setError] = useState('');
+                const [userPlan, setUserPlan] = useState('free');
+                const [promptsUsed, setPromptsUsed] = useState(0);
+                const [promptsLimit, setPromptsLimit] = useState(5);
+                const [activeTab, setActiveTab] = useState('home');
+                const [copied, setCopied] = useState(false);
+                const [timeUntilReset, setTimeUntilReset] = useState(null);
+                const [resetTimer, setResetTimer] = useState('');
+                
+                const [creatorForm, setCreatorForm] = useState({
+                    projectType: '',
+                    industry: '',
+                    stylePreferences: '',
+                    specificRequirements: '',
+                    variationsCount: '3'
+                });
+
+                useEffect(() => {
+                    const savedPlan = localStorage.getItem('userPlan') || 'free';
+                    const savedUsed = parseInt(localStorage.getItem('promptsUsed')) || 0;
+                    
+                    setUserPlan(savedPlan);
+                    setPromptsUsed(savedUsed);
+                    
+                    if (savedPlan === 'pro' || savedPlan === 'creator-pro') {
+                        setPromptsLimit(Infinity);
+                    }
+                }, []);
+
+                const saveUserData = (plan, used) => {
+                    localStorage.setItem('userPlan', plan);
+                    localStorage.setItem('promptsUsed', used.toString());
+                };
+
+                const copyToClipboard = async () => {
+                    try {
+                        await navigator.clipboard.writeText(result);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                    } catch (err) {
+                        const textArea = document.createElement('textarea');
+                        textArea.value = result;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                    }
+                };
+
+                const checkAndResetUsage = () => {
+                    const lastResetTime = localStorage.getItem('lastResetTime');
+                    const now = Date.now();
+                    
+                    if (!lastResetTime) {
+                        localStorage.setItem('lastResetTime', now.toString());
+                        return;
+                    }
+                    
+                    const timeSinceReset = now - parseInt(lastResetTime);
+                    const twentyFourHours = 24 * 60 * 60 * 1000;
+                    
+                    if (timeSinceReset >= twentyFourHours) {
+                        setPromptsUsed(0);
+                        localStorage.setItem('promptsUsed', '0');
+                        localStorage.setItem('lastResetTime', now.toString());
+                        setTimeUntilReset(null);
+                    } else {
+                        const timeUntilNext = twentyFourHours - timeSinceReset;
+                        setTimeUntilReset(timeUntilNext);
+                    }
+                };
+
+                const formatCountdown = (milliseconds) => {
+                    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+                    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+                    
+                    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                };
+
+                const secureApiCall = async (url, options = {}) => {
+                    try {
+                        const response = await fetch(url, {
+                            ...options,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...options.headers
+                            }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        return await response.json();
+                    } catch (error) {
+                        console.error('API Error:', error.message);
+                        throw error;
+                    }
+                };
+
+                const generatePrompt = async () => {
+                    checkAndResetUsage();
+                    
+                    if (!prompt.trim()) {
+                        setError('Please enter a prompt to get started');
+                        return;
+                    }
+
+                    if (prompt.length > 500) {
+                        setError('Prompt too long. Maximum 500 characters.');
+                        return;
+                    }
+
+                    const suspiciousPatterns = /<script|javascript:|data:|vbscript:/i;
+                    if (suspiciousPatterns.test(prompt)) {
+                        setError('Invalid characters detected in prompt.');
+                        return;
+                    }
+
+                    if (userPlan === 'free' && promptsUsed >= promptsLimit) {
+                        setError(`You've reached your free limit. ${resetTimer ? `Try again in ${resetTimer}` : 'Upgrade to Pro for unlimited access.'}`);
+                        return;
+                    }
+
+                    setLoading(true);
+                    setError('');
+                    setResult('');
+                    setCopied(false);
+
+                    try {
+                        const data = await secureApiCall(`${API_URL}/api/prompts/generate`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                prompt: prompt.trim(),
+                                type: 'image'
+                            })
+                        });
+
+                        if (data.success) {
+                            setResult(data.generatedPrompt);
+                            
+                            const newUsed = promptsUsed + 1;
+                            setPromptsUsed(newUsed);
+                            saveUserData(userPlan, newUsed);
+                        } else {
+                            setError(data.message || 'Unable to generate prompt. Please try again.');
+                        }
+                    } catch (err) {
+                        setError('Connection error. Please check your internet and try again.');
+                        console.error('Generation error:', err);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                const handleUpgrade = async (planType = 'pro') => {
+                    try {
+                        setLoading(true);
+                        
+                        const priceId = planType === 'creator-pro' 
+                            ? 'price_1RlHGkGX7z8uqUdDtMZrcXts' 
+                            : 'price_1RkCJuGX7z8uqUdDOr4Xs0Gu';
+                        
+                        const response = await fetch(`${API_URL}/api/stripe/create-checkout-session`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                priceId,
+                                successUrl: `${window.location.origin}?session_id={CHECKOUT_SESSION_ID}&plan=${planType}`,
+                                cancelUrl: window.location.origin,
+                            }),
+                        });
+
+                        const session = await response.json();
+
+                        if (response.ok) {
+                            const { error } = await stripe.redirectToCheckout({
+                                sessionId: session.sessionId
+                            });
+
+                            if (error) {
+                                setError('Payment setup failed. Please try again.');
+                            }
+                        } else {
+                            setError('Unable to start checkout. Please try again.');
+                        }
+                    } catch (err) {
+                        setError('Payment system temporarily unavailable. Please try again.');
+                        console.error('Checkout error:', err);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                const handleCreatorRequest = async () => {
+                    try {
+                        setLoading(true);
+                        setError('');
+                        
+                        const data = await secureApiCall(`${API_URL}/api/creator/request-custom-prompts`, {
+                            method: 'POST',
+                            body: JSON.stringify(creatorForm)
+                        });
+
+                        if (data.success) {
+                            setResult(`🎨 Custom prompts generated! Request ID: ${data.requestId}`);
+                        } else {
+                            setError(data.message || 'Failed to generate custom prompts');
+                        }
+                    } catch (err) {
+                        setError('Failed to process custom prompt request');
+                        console.error('Creator request error:', err);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                useEffect(() => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const sessionId = urlParams.get('session_id');
+                    const planType = urlParams.get('plan');
+                    
+                    if (sessionId) {
+                        fetch(`${API_URL}/api/stripe/verify-session`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ sessionId }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const newPlan = planType || 'pro';
+                                setUserPlan(newPlan);
+                                setPromptsLimit(Infinity);
+                                saveUserData(newPlan, promptsUsed);
+                                setResult(`Welcome to Promplit ${newPlan === 'creator-pro' ? 'Creator Pro' : 'Pro'}! You now have ${newPlan === 'creator-pro' ? 'custom prompt credits and ' : ''}unlimited access.`);
+                                setActiveTab('home');
+                                
+                                window.history.replaceState({}, document.title, window.location.pathname);
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Payment verification error:', err);
+                        });
+                    }
+                }, []);
+
+                useEffect(() => {
+                    checkAndResetUsage();
+                    
+                    const interval = setInterval(() => {
+                        if (timeUntilReset && timeUntilReset > 0) {
+                            const newTime = timeUntilReset - 1000;
+                            if (newTime <= 0) {
+                                checkAndResetUsage();
+                            } else {
+                                setTimeUntilReset(newTime);
+                                setResetTimer(formatCountdown(newTime));
+                            }
+                        }
+                    }, 1000);
+                    
+                    return () => clearInterval(interval);
+                }, [timeUntilReset]);
+
+                useEffect(() => {
+                    if (timeUntilReset) {
+                        setResetTimer(formatCountdown(timeUntilReset));
+                    }
+                }, [timeUntilReset]);
+
+                const getRemainingPrompts = () => {
+                    if (userPlan === 'pro' || userPlan === 'creator-pro') return '∞';
+                    return Math.max(0, promptsLimit - promptsUsed);
+                };
+
+                return (
+                    <div className="app-container">
+                        <header className="header">
+                            <div className="nav-container">
+                                <a href="#" className="logo">Promptlit.xyz</a>
+                                
+                                <div className="nav-tabs">
+                                    <button 
+                                        className={`nav-tab ${activeTab === 'home' ? 'active' : ''}`}
+                                        onClick={() => setActiveTab('home')}
+                                    >
+                                        Home
+                                    </button>
+                                    <button 
+                                        className={`nav-tab ${activeTab === 'subscription' ? 'active' : ''}`}
+                                        onClick={() => setActiveTab('subscription')}
+                                    >
+                                        Pro
+                                    </button>
+                                    <button 
+                                        className={`nav-tab ${activeTab === 'creator-pro' ? 'active' : ''}`}
+                                        onClick={() => setActiveTab('creator-pro')}
+                                    >
+                                        Creator Pro
+                                    </button>
+                                </div>
+
+                                <div className="version-badge">v.01 mini</div>
+                            </div>
+                        </header>
+
+                        <main className="main-content">
+                            {activeTab === 'home' && (
+                                <div className="fade-in">
+                                    <div className="hero">
+                                        <h1 className="hero-title">Seamless AI Prompt Engine</h1>
+                                        <p className="hero-subtitle">
+                                          Instant AI Prompts-Optimize Sora, DALL·E, Midjourney & Every Cutting-Edge Image Generation Tool.
+                                        </p>
+                                    </div>
+
+                                    <div className={`status-indicator ${(userPlan === 'pro' || userPlan === 'creator-pro') ? 'status-pro' : ''}`}>
+                                        <div className="status-text">
+                                            {userPlan === 'creator-pro' ? 
+                                                'Creator Pro • Unlimited + Custom Prompts' :
+                                                userPlan === 'pro' ? 
+                                                'Promplit Pro • Unlimited Generation' : 
+                                                promptsUsed >= promptsLimit ? 
+                                                    `Limit reached • Resets in ${resetTimer}` :
+                                                    `${getRemainingPrompts()} free prompts remaining`
+                                            }
+                                        </div>
+                                        {userPlan === 'free' && promptsUsed >= promptsLimit && resetTimer && (
+                                            <div className="countdown-timer">
+                                                ⏰ New prompts available in: {resetTimer}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="input-section">
+                                        <label className="input-label">Describe your vision</label>
+                                        <textarea
+                                            className="prompt-input"
+                                            value={prompt}
+                                            onChange={(e) => setPrompt(e.target.value)}
+                                            placeholder="A serene mountain landscape at golden hour..."
+                                            maxLength={500}
+                                        />
+                                    </div>
+
+                                    <button 
+                                        className="primary-button" 
+                                        onClick={generatePrompt}
+                                        disabled={loading || (userPlan === 'free' && promptsUsed >= promptsLimit)}
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <div className="loading-spinner"></div>
+                                                Generating...
+                                            </>
+                                        ) : 'Generate Prompt'}
+                                    </button>
+
+                                    {result && !error && (
+                                        <>
+                                            <div className="tip-section">
+                                                <div className="tip-icon">💡</div>
+                                                <div className="tip-content">
+                                                    <div className="tip-title">How to use your prompt</div>
+                                                    <div className="tip-text">
+                                                        Copy the generated prompt below and paste it into any AI image generator for best results.
+                                                    </div>
+                                                    <div className="tip-platforms">
+                                                        <span className="platform-tag">Sora</span>
+                                                        <span className="platform-tag">DALL·E</span>
+                                                        <span className="platform-tag">Midjourney</span>
+                                                        <span className="platform-tag">Stable Diffusion</span>
+                                                        <span className="platform-tag">Leonardo AI</span>
+                                                        <span className="platform-tag">Chatgpt</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="result-container result-success slide-up">
+                                                <div className="result-header">
+                                                    <div className="result-label">Generated Prompt</div>
+                                                    <button 
+                                                        className={`copy-button ${copied ? 'copied' : ''}`}
+                                                        onClick={copyToClipboard}
+                                                    >
+                                                        {copied ? '✓ Copied!' : '📋 Copy'}
+                                                    </button>
+                                                </div>
+                                                <p className="result-text">
+                                                    {result}
+                                                </p>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {error && (
+                                        <div className="result-container result-error slide-up">
+                                            <p className="result-text">
+                                                {error}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {userPlan === 'free' && (
+                                        <button 
+                                            className="secondary-button" 
+                                            onClick={() => setActiveTab('subscription')}
+                                        >
+                                            Upgrade to Pro
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'subscription' && (
+                                <div className="subscription-container fade-in">
+                                    <div className="hero">
+                                        <h1 className="hero-title">Promptlit Pro</h1>
+                                        <p className="hero-subtitle">
+                                            Unleash unlimited creativity with professional-grade AI prompt generation.
+                                        </p>
+                                    </div>
+
+                                    <div className="pricing-card slide-up">
+                                        <div className="plan-name">Pro</div>
+                                        <div className="plan-description">For freelance creators and professionals</div>
+                                        
+                                        <div className="price-display">
+                                            <div className="price-amount">$11.99</div>
+                                            <div className="price-period">per month</div>
+                                        </div>
+
+                                        <ul className="features-list">
+                                            <li className="feature-item">
+                                                <div className="feature-icon">∞</div>
+                                                Unlimited prompt generation Powered by LLaMA
+                                            </li>
+                                            <li className="feature-item">
+                                                <div className="feature-icon">⚡</div>
+                                                Priority processing speed
+                                            </li>
+                                            <li className="feature-item">
+                                                <div className="feature-icon">🎯</div>
+                                                Advanced prompt optimization
+                                            </li>
+                                            <li className="feature-item">
+                                                <div className="feature-icon">💎</div>
+                                                Access to new versions and features
+                                            </li>
+                                        </ul>
+
+                                        {userPlan === 'free' ? (
+                                            <button 
+                                                className="primary-button" 
+                                                onClick={() => handleUpgrade('pro')}
+                                                disabled={loading}
+                                            >
+                                                {loading ? (
+                                                    <>
+                                                        <div className="loading-spinner"></div>
+                                                        Processing...
+                                                    </>
+                                                ) : 'Start Pro Subscription'}
+                                            </button>
+                                        ) : userPlan === 'pro' ? (
+                                            <div className="status-indicator status-pro">
+                                                <div className="status-text">Current Plan</div>
+                                            </div>
+                                        ) : (
+                                            <button 
+                                                className="secondary-button" 
+                                                onClick={() => handleUpgrade('pro')}
+                                            >
+                                                Switch to Pro
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'creator-pro' && (
+                                <div className="fade-in">
+                                    <div className="hero">
+                                        <h1 className="hero-title">Creator Pro</h1>
+                                        <p className="hero-subtitle">
+                                            Get 20 custom AI-crafted prompts monthly, plus unlimited regular prompts and priority support.
+                                        </p>
+                                    </div>
+
+                                    <div className="pricing-card creator-pro slide-up">
+                                        <div className="plan-name">Creator Pro</div>
+                                        <div className="plan-description">Perfect for professional creators and agencies</div>
+                                        
+                                        <div className="price-display">
+                                            <div className="price-amount">$29.99</div>
+                                            <div className="price-period">per month</div>
+                                        </div>
+
+                                        <ul className="features-list">
+                                            <li className="feature-item">
+                                                <div className="feature-icon">✨</div>
+                                                Everything in Pro, plus:
+                                            </li>
+                                            <li className="feature-item">
+                                                <div className="feature-icon">🎨</div>
+                                                20 custom prompt credits per month
+                                            </li>
+                                            <li className="feature-item">
+                                                <div className="feature-icon">📋</div>
+                                                Detailed customization forms
+                                            </li>
+                                            <li className="feature-item">
+                                                <div className="feature-icon">⬇️</div>
+                                                Multiple export formats (PDF, TXT, JSON)
+                                            </li>
+                                            <li className="feature-item">
+                                                <div className="feature-icon">🔄</div>
+                                                3-5 variations per custom request
+                                            </li>
+                                            <li className="feature-item">
+                                                <div className="feature-icon">⚡</div>
+                                                Priority processing & support
+                                            </li>
+                                        </ul>
+
+                                        {userPlan === 'creator-pro' ? (
+                                            <div className="status-indicator status-pro">
+                                                <div className="status-text">Current Plan</div>
+                                            </div>
+                                        ) : (
+                                            <button 
+                                                className="primary-button" 
+                                                onClick={() => handleUpgrade('creator-pro')}
+                                                disabled={loading}
+                                                style={{background: 'var(--creator-orange)'}}
+                                            >
+                                                {loading ? (
+                                                    <>
+                                                        <div className="loading-spinner"></div>
+                                                        Processing...
+                                                    </>
+                                                ) : 'Start Creator Pro'}
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="input-section" style={{marginTop: '40px'}}>
+                                        <h2 style={{marginBottom: '20px', textAlign: 'center', color: 'var(--creator-orange)'}}>Request Custom Prompts</h2>
+                                        <p style={{textAlign: 'center', color: '#666', marginBottom: '30px'}}>
+                                            Fill out this form to get personalized, professional-grade prompts crafted specifically for your needs.
+                                        </p>
+                                        
+                                        <div className="form-grid">
+                                            <div>
+                                                <label className="input-label">Project Type</label>
+                                                <select 
+                                                    className="form-input"
+                                                    value={creatorForm.projectType}
+                                                    onChange={(e) => setCreatorForm({...creatorForm, projectType: e.target.value})}
+                                                >
+                                                    <option value="">Select project type...</option>
+                                                    <option value="marketing">Marketing & Advertising</option>
+                                                    <option value="art">Digital Art & Illustration</option>
+                                                    <option value="photography">Photography</option>
+                                                    <option value="branding">Branding & Identity</option>
+                                                    <option value="social-media">Social Media Content</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="input-label">Industry/Niche</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="form-input"
+                                                    placeholder="e.g., Fashion, Technology, Food & Beverage..."
+                                                    value={creatorForm.industry}
+                                                    onChange={(e) => setCreatorForm({...creatorForm, industry: e.target.value})}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="input-label">Style Preferences</label>
+                                                <input 
+                                                    type="text" 
+                                                    className="form-input"
+                                                    placeholder="e.g., Minimalist, Cinematic, Bold and Colorful..."
+                                                    value={creatorForm.stylePreferences}
+                                                    onChange={(e) => setCreatorForm({...creatorForm, stylePreferences: e.target.value})}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="input-label">Specific Requirements</label>
+                                                <textarea
+                                                    className="form-input"
+                                                    style={{minHeight: '100px', resize: 'vertical'}}
+                                                    placeholder="Describe your specific needs, target audience, mood, technical requirements, etc..."
+                                                    value={creatorForm.specificRequirements}
+                                                    onChange={(e) => setCreatorForm({...creatorForm, specificRequirements: e.target.value})}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="input-label">Number of Variations</label>
+                                                <select 
+                                                    className="form-input"
+                                                    value={creatorForm.variationsCount}
+                                                    onChange={(e) => setCreatorForm({...creatorForm, variationsCount: e.target.value})}
+                                                >
+                                                    <option value="3">3 variations (1 credit)</option>
+                                                    <option value="5">5 variations (2 credits)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <button 
+                                            className="primary-button" 
+                                            style={{marginTop: '20px', background: 'var(--creator-orange)'}}
+                                            onClick={handleCreatorRequest}
+                                            disabled={loading || !creatorForm.projectType || !creatorForm.industry}
+                                        >
+                                            {loading ? (
+                                                <>
+                                                    <div className="loading-spinner"></div>
+                                                    Generating Custom Prompts...
+                                                </>
+                                            ) : '🎨 Generate Custom Prompts'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </main>
+
+                        <footer className="footer">
+                            <div className="footer-links">
+                                
+                            </div>
+                            <div>© 2025 Promptlit.xyz. Powered by LLaMA.</div>
+                            <div>Disclaimer: This app is intended for creative and ethical use only. Any malicious or harmful use is strictly prohibited.</div>
+                        </footer>
+                    </div>
+                );
+            }
+
+            ReactDOM.render(<App />, document.getElementById('root'));
+        };
+    </script>
+</body>
+</html>
