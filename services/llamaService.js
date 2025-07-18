@@ -5,7 +5,7 @@ class LlamaService {
     this.provider = process.env.LLAMA_PROVIDER || 'together';
     this.apiKey = process.env.TOGETHER_API_KEY;
     this.baseURL = 'https://api.together.xyz/v1';
- this.model = 'meta-llama/Llama-3-8b-chat-hf';;
+    this.model = 'meta-llama/Llama-3-8b-chat-hf';
     
     console.log('🧠 Llama Service initialized');
     console.log(`🔧 Provider: ${this.provider}`);
@@ -41,9 +41,9 @@ RULES:
 1. Create vivid, detailed descriptions
 2. Include artistic style, lighting, composition details  
 3. Add technical parameters (4K, highly detailed, cinematic, etc.)
-5. Focus on visual elements that AI can understand
-6. Make prompts inspiring and creative
-7. Include specific details about colors, textures, mood, and atmosphere
+4. Focus on visual elements that AI can understand
+5. Make prompts inspiring and creative
+6. Include specific details about colors, textures, mood, and atmosphere
 
 Transform the user's input into a professional, detailed image generation prompt that will create stunning visuals.`,
 
@@ -59,8 +59,6 @@ RULES:
 5. Use natural language, avoid jargon
 6. Make prompts engaging and creative
 
-
-
 Transform the user's input into an optimized text generation prompt.`,
     };
 
@@ -70,8 +68,8 @@ Transform the user's input into an optimized text generation prompt.`,
   formatUserPrompt(userInput, promptType) {
     return `User request: "${userInput}"
 
-    Please create an optimized ${promptType} pr based on this request. Make it detailed, specific, and designed to produce amazing results. Focus on creating a prompt that will generate high-quality, professional-looking images.`;
-}
+Please create an optimized ${promptType} prompt based on this request. Make it detailed, specific, and designed to produce amazing results. Focus on creating a prompt that will generate high-quality, professional-looking images.`;
+  }
 
   async callTogetherAI(systemPrompt, userPrompt) {
     if (!this.apiKey) {
@@ -114,6 +112,7 @@ Transform the user's input into an optimized text generation prompt.`,
       }
     }
   }
+  
   cleanResponse(response) {
     // Clean up the AI response
     let cleaned = response.trim();
@@ -141,7 +140,7 @@ Transform the user's input into an optimized text generation prompt.`,
     }
 
     return cleaned;
-}
+  }
 
   // Test method to check if service is working
   async healthCheck() {
