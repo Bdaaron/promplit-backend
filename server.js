@@ -99,11 +99,12 @@ app.use(cors({
     
     // Allow requests with no origin (mobile apps, postman, etc)
     if (!origin) return callback(null, true);
-    
     const allowedOrigins = [
       'https://stunning-brioche-d1383a.netlify.app',
-      'https://promplit.xyz',
+      
+      'https://promptlit.xyz',  // Add this line
       'https://www.promplit.xyz',
+      'https://www.promptlit.xyz',  // Add this too
       'http://localhost:3000',
       'http://localhost:3001'
     ];
