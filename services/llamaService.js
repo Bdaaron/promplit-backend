@@ -5,7 +5,8 @@ class LlamaService {
     this.provider = process.env.LLAMA_PROVIDER || 'together';
     this.apiKey = process.env.TOGETHER_API_KEY;
     this.baseURL = 'https://api.together.xyz/v1';
-    this.model = 'model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo";
+    this.model = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"; // ✅ Corrected model line
+
     console.log('🧠 Llama Service initialized');
     console.log(`🔧 Provider: ${this.provider}`);
     console.log(`🤖 Model: ${this.model}`);
@@ -14,16 +15,16 @@ class LlamaService {
   async generatePrompt(userInput, promptType = 'image') {
     try {
       console.log(`🎨 Generating ${promptType} prompt for: "${userInput}"`);
-      
+
       const systemPrompt = this.getSystemPrompt(promptType);
       const userPrompt = this.formatUserPrompt(userInput, promptType);
 
       const response = await this.callTogetherAI(systemPrompt, userPrompt);
       const cleanedResponse = this.cleanResponse(response);
-      
+
       console.log('✅ Prompt generated successfully!');
       return cleanedResponse;
-      
+
     } catch (error) {
       console.error('❌ Llama service error:', error.message);
       throw new Error(`Failed to generate prompt: ${error.message}`);
@@ -111,31 +112,31 @@ Please create an optimized ${promptType} prompt based on this request. Make it d
       }
     }
   }
-  
+
   cleanResponse(response) {
     // Clean up the AI response
     let cleaned = response.trim();
-    
+
     // Remove everything before and including the colon after instruction text
     cleaned = cleaned.replace(/^.*?(prompt.*?:|create.*?:|generate.*?:|image.*?:|detailed.*?:)/i, '').trim();
-    
+
     // Remove common prefixes
     cleaned = cleaned.replace(/^(Here's|Here is|Prompt:|Generated prompt:|Image prompt:|an optimized|optimized|a detailed|detailed)/i, '').trim();
-    
+
     // Remove any remaining instruction patterns
     cleaned = cleaned.replace(/^(.*?prompt.*?for.*?:|.*?designed.*?to.*?:|.*?generate.*?:|.*?create.*?:)/i, '').trim();
-    
+
     // Remove quotes if the entire response is quoted
     if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
-        cleaned = cleaned.slice(1, -1);
+      cleaned = cleaned.slice(1, -1);
     }
-    
+
     // Remove any trailing instruction text
     cleaned = cleaned.replace(/\s*(based on this request|for this|as requested).*$/i, '').trim();
-    
+
     // Limit length
     if (cleaned.length > 1000) {
-        cleaned = cleaned.substring(0, 1000) + '...';
+      cleaned = cleaned.substring(0, 1000) + '...';
     }
 
     return cleaned;
