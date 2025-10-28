@@ -5,7 +5,8 @@ class LlamaService {
     this.provider = process.env.LLAMA_PROVIDER || 'together';
     this.apiKey = process.env.TOGETHER_API_KEY;
     this.baseURL = 'https://api.together.xyz/v1';
-    this.model = 'meta-llama/Llama-3-8b-chat-hf';
+    this.model = 'model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+';
     
     console.log('🧠 Llama Service initialized');
     console.log(`🔧 Provider: ${this.provider}`);
